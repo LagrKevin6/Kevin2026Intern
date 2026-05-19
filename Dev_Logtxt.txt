@@ -1,0 +1,36 @@
+本文件作为初步开发日志以按日期记录一些项目实现细节
+
+Day 1
+
+接到React+flask项目，原话：需要做一个插件，这个插件可以自己从分析PRD开始，然后做需求分析，测试用例设计，测试试用例执行，生成测试报告，有bug自动开bug，这么一个东西，因为你没有公司系统权限，你这周搞一个最简单的react+flask的登录注册系统吧，你记得自己写一个bug进去，最简单可以这样，你不限制用户名长度，然后到时候在测试的prd里面写一下，用户名的长度必须大于x位
+
+用conda创建虚拟环境May_Intern_zjy
+
+安装flask组件
+
+根据知乎专栏https://zhuanlan.zhihu.com/p/651004752
+做flask后端，成功看到
+http://127.0.0.1:5000/time
+页面返回成功
+
+Day 2
+
+使用Ds完成登陆界面index.html，可以用
+file://F:\May Intern\Frontend_ReAct\index.html
+本地进入
+
+或
+cd Frontend_ReAct
+python -m http.server 3000
+在本地3000端口开一个http服务器以访问
+
+
+使用 React 定义 UI 结构：使用 JSX 语法编写一个组件，结构由 React 核心库创建并管理。
+
+Babel 实时编译：由于浏览器无法直接识别 JSX，babel-standalone 会拦截带有 type="text/jsx" 属性的 <script> 标签，并实时地将 JSX 代码编译成标准的 JavaScript。
+
+ReactDOM 渲染到页面：编译完成后，ReactDOM.render(...) 方法被调用，将 React 组件生成最终的 HTML 元素并真实地“画”在网页的指定容器内。
+
+
+
+尝试在网页注册kevin, pwd=123456，成功在后端数据库看到相同数据（密码经哈希）

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录注册系统</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { font-family: Arial; max-width: 400px; margin: 50px auto; }
+        .container { border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        input { display: block; width: 100%; margin: 10px 0; padding: 8px; }
+        button { margin: 5px; padding: 8px 16px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState } = React;
+
+        const App = () => {
+            const [isLogin, setIsLogin] = useState(true);
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [message, setMessage] = useState('');
+            const [msgType, setMsgType] = useState('');
+
+            const showMessage = (text, type) => {
+                setMessage(text);
+                setMsgType(type);
+                setTimeout(() => setMessage(''), 3000);
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                const url = isLogin ? 'http://localhost:5000/api/login' : 'http://localhost:5000/api/register';
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showMessage(data.message, 'success');
+                        if (!isLogin) { // 注册成功后清空表单
+                            setUsername('');
+                            setPassword('');
+                        }
+                    } else {
+                        showMessage(data.message, 'error');
+                    }
+                } catch (err) {
+                    showMessage('网络错误', 'error');
+                }
+            };
+
+            return (
+                <div className="container">
+                    <h2>{isLogin ? '登录' : '注册'}</h2>
+                    <form onSubmit={handleSubmit}>
+                        <input
+                            type="text"
+                            placeholder="用户名"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                        />
+                        <input
+                            type="password"
+                            placeholder="密码"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
+                        <button type="submit">{isLogin ? '登录' : '注册'}</button>
+                    </form>
+                    <button onClick={() => setIsLogin(!isLogin)}>
+                        {isLogin ? '没有账号？去注册' : '已有账号？去登录'}
+                    </button>
+                    {message && <div className={msgType === 'error' ? 'error' : 'success'}>{message}</div>}
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
