@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理控制台</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 30px auto; }
+        .container { border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        input, button { margin: 5px; padding: 8px; }
+        .section { margin: 20px 0; padding: 15px; background: #f9f9f9; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>👥 用户管理控制台</h2>
+        
+        <div class="section">
+            <h3>📋 所有用户列表</h3>
+            <button onclick="loadUsers()">刷新列表</button>
+            <button onclick="deleteAllUsers()" style="background:#f44336;color:white">⚠️ 清空所有用户</button>
+            <div id="userList"></div>
+        </div>
+
+        <div class="section">
+            <h3>✏️ 修改密码</h3>
+            <input type="text" id="modifyUsername" placeholder="用户名">
+            <input type="password" id="newPassword" placeholder="新密码">
+            <button onclick="updatePassword()">修改密码</button>
+        </div>
+
+        <div class="section">
+            <h3>🗑️ 删除用户</h3>
+            <input type="text" id="deleteUsername" placeholder="用户名">
+            <button onclick="deleteUser()">删除用户</button>
+        </div>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+
+        async function loadUsers() {
+            try {
+                const res = await fetch(`${API_BASE}/users`);
+                const data = await res.json();
+                if (data.success && data.users) {
+                    const html = `
+                        <table>
+                            <tr><th>用户名</th><th>操作</th></tr>
+                            ${data.users.map(u => `
+                                <tr>
+                                    <td>${u.username}</td>
+                                    <td><button onclick="prepareDelete('${u.username}')">删除</button></td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    `;
+                    document.getElementById('userList').innerHTML = html;
+                } else {
+                    document.getElementById('userList').innerHTML = '<p>暂无用户</p>';
+                }
+            } catch (err) {
+                showMessage('加载失败: ' + err.message, 'error');
+            }
+        }
+
+        async function updatePassword() {
+            const username = document.getElementById('modifyUsername').value;
+            const newPassword = document.getElementById('newPassword').value;
+            if (!username || !newPassword) {
+                showMessage('请填写用户名和新密码', 'error');
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/users/${username}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ new_password: newPassword })
+                });
+                const data = await res.json();
+                showMessage(data.message, data.success ? 'success' : 'error');
+                if (data.success) loadUsers();
+            } catch (err) {
+                showMessage('操作失败', 'error');
+            }
+        }
+
+        async function deleteUser() {
+            const username = document.getElementById('deleteUsername').value;
+            if (!username) {
+                showMessage('请输入用户名', 'error');
+                return;
+            }
+            if (!confirm(`确定删除用户 "${username}" 吗？`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/users/${username}`, { method: 'DELETE' });
+                const data = await res.json();
+                showMessage(data.message, data.success ? 'success' : 'error');
+                if (data.success) {
+                    loadUsers();
+                    document.getElementById('deleteUsername').value = '';
+                }
+            } catch (err) {
+                showMessage('删除失败', 'error');
+            }
+        }
+
+        async function deleteAllUsers() {
+            if (!confirm('⚠️ 危险操作！这将删除所有用户数据，是否继续？')) return;
+            try {
+                const res = await fetch(`${API_BASE}/users?confirm=true`, { method: 'DELETE' });
+                const data = await res.json();
+                showMessage(data.message, data.success ? 'success' : 'error');
+                if (data.success) loadUsers();
+            } catch (err) {
+                showMessage('操作失败', 'error');
+            }
+        }
+
+        function prepareDelete(username) {
+            document.getElementById('deleteUsername').value = username;
+            deleteUser();
+        }
+
+        function showMessage(msg, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = `<div class="${type}">${msg}</div>`;
+            setTimeout(() => msgDiv.innerHTML = '', 3000);
+        }
+
+        // 页面加载时获取用户列表
+        loadUsers();
+    </script>
+</body>
+</html>
